@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    component: collector
+    logging-infra: collector
+    provider: openshift
+  name: collector
+  namespace: openshift-logging
+spec:
+  selector:
+    matchLabels:
+      component: collector
+      logging-infra: collector
+      provider: openshift
+  template:
+    metadata:
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ""
+      creationTimestamp: null
+      labels:
+        component: collector
+        logging-infra: collector
+        provider: openshift
+      name: fluentbit
+    spec:
+      containers:
+      - name: fluentbit
+        image: quay.io/jcantril/fluent-bit:v1.5.2-rh
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /var/log
+          name: varlog
+        - mountPath: /etc/fluent-bit
+          name: fluentbit-conf
+        securityContext:
+          privileged: true
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+        kubernetes.io/os: linux
+      priorityClassName: cluster-logging
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: logcollector
+      serviceAccountName: logcollector
+      terminationGracePeriodSeconds: 10
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+        operator: Exists
+      - effect: NoSchedule
+        key: node.kubernetes.io/disk-pressure
+        operator: Exists
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: fluentbit
+        name: fluentbit-conf
+      - hostPath:
+          path: /run/log/journal
+          type: ""
+        name: runlogjournal
+      - hostPath:
+          path: /var/log
+          type: ""
+        name: varlog
+      - hostPath:
+          path: /var/lib/docker
+          type: ""
+        name: varlibdockercontainers
+      - configMap:
+          defaultMode: 420
+          name: fluentd
+        name: config
+      - configMap:
+          defaultMode: 420
+          name: secure-forward
+          optional: true
+        name: secureforwardconfig
+      - name: secureforwardcerts
+        secret:
+          defaultMode: 420
+          optional: true
+          secretName: secure-forward
+      - configMap:
+          defaultMode: 420
+          name: syslog
+          optional: true
+        name: syslogconfig
+      - name: syslogcerts
+        secret:
+          defaultMode: 420
+          optional: true
+          secretName: syslog
+      - configMap:
+          defaultMode: 420
+          name: fluentd
+        name: entrypoint
+      - name: certs
+        secret:
+          defaultMode: 420
+          secretName: fluentd
+      - hostPath:
+          path: /etc/localtime
+          type: ""
+        name: localtime
+      - hostPath:
+          path: /etc/sysconfig/docker
+          type: ""
+        name: dockercfg
+      - hostPath:
+          path: /etc/docker
+          type: ""
+        name: dockerdaemoncfg
+      - hostPath:
+          path: /var/lib/fluentd
+          type: ""
+        name: filebufferstorage
+      - name: collector-metrics
+        secret:
+          defaultMode: 420
+          secretName: fluentd-metrics
+      - name: default
+        secret:
+          defaultMode: 420
+          secretName: fluentd
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: ca-bundle.crt
+            path: tls-ca-bundle.pem
+          name: fluentd-trusted-ca-bundle
+        name: fluentd-trusted-ca-bundle
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate

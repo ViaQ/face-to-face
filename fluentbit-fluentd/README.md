@@ -20,14 +20,37 @@ This scenario test using multi-container daemonset deployed to each node with co
     ```
 1. create fluentbit cm:
     ```
-    oc create configmap fluentbit --from-file=fluentbit.conf
+     oc create configmap fluentbit --from-file fluentbit-conf
     ```
 1. create fluentbit ds:
     ```
-    oc extract configmap fluentd --to=.
+    oc extract configmap/fluentd --to=.
     cp run.sh fluent-conf
-    oc create configmap fluentd --from-file fluent-conf --dry-run | oc replace -f -
+    oc create configmap fluentd --from-file fluent-conf/ --dry-run=client -o yaml | oc replace -f -
     ```
+
+### Normalizer
+This scenario test using single container daemonset deployed to each node with collection being performed by fluentbit and forwarding to a fluentd 
+normalizer for additional processing
+
+1. Create normalizer service:
+   ```
+   oc create -f normalizer-service.yaml 
+   ```
+1. Create normalizer:
+   ```
+   oc extract configmap/fluentd --to=.
+   cp run.sh fluent-conf
+   oc create configmap fluentd --from-file fluent-conf/ --dry-run=client -o yaml | oc replace -f -
+   oc create -f normalizer-statefulset.yaml
+   ```
+1. Create collector:
+   ```
+   oc create configmap fluentbit --from-file fluentbit-conf
+   oc create -f collector-ds.yml
+   ```
+
+
 
 ## Ref
 * https://github.com/jcantrill/fluent-bit
