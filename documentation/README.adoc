@@ -1,0 +1,34 @@
+# OpenShift Logging Documentation
+
+## What?
+
+The goal for this project was to reorganize the cluster logging documentation.
+
+Participants: Michael Burke
+
+## Why?
+
+Moving from the 3.11 to 4.1 release, the structure and organization of the OpenShift documentation was completely changed. In 3.11, the cluster logging docs were almost entirely in one file, with a few topics in a second file, both files were in the Configuring Clusters book.  
+
+When I converted the cluster logging documentation for 4.1, I broke the two topics into multiple topics and Logging became a book of its own. Due in part to the short time frame we had to convert all the docs to the new structure, the resulting logging docs was not organized as well as they could have been. This new organization particulalry suffered as the number of topics grew.   
+
+During the cluster logging face-to-face, participants offered criticims of the docs as having no flow, combined Managed and Unmanaged topics together in a way that made configuration confusing, and an EFK-centered approach that we want to get away from. As a team, we learned that features that required the cluster to be set to Unamanged are unsupported, which made the combined topics even less helpful.
+
+## Outcome
+
+The new organization for the cluster logging documentation is organized more around user actions: 
+
+* installing cluster logging 
+* updating cluster logging 
+* viewing logs in the CLI and web console 
+* forwarding logs using Log Forwarding and legacy features 
+* configuring various components with unsupported configurations isolated 
+* viewing status of cluster logging and Elasticsearch 
+* troubleshooting cluster logging, Kibana, Curator 
+
+Preview of work in progress: https://logging-efk-remove--ocpdocs.netlify.com/openshift-enterprise/latest/logging/cluster-logging.html
+ 
+## Next steps
+
+* Get required approvals from Eng, PM, Support, Product experience, QE, and docs
+ 
